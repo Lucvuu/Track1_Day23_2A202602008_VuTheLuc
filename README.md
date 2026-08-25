@@ -7,7 +7,7 @@
 
 **Use case phân tích:** từ lúc khách mô tả nhu cầu bằng lời tới lúc có lịch hẹn xem nhà. Không phân tích phần quản lý của sale và admin.
 
-**Link tệp Metrics Pack:** `[DÁN LINK GOOGLE DOC ĐÃ CẤP QUYỀN XEM]`
+**Link tệp Metrics Pack:** https://drive.google.com/file/d/1gU0MnkFbTRdp6yvjzYBgpU90UPJrjWFl/view?usp=sharing
 
 ---
 
@@ -25,4 +25,4 @@ Ba thứ tôi mang về:
 
 **Thứ ba, với Nera thì dùng ít lại mới là tốt.** Nếu hệ thống hiểu đúng nhu cầu ngay từ đầu, khách cần ít lượt đi xem hơn và chu kỳ tìm nhà ngắn lại. Một sản phẩm mà thành công đồng nghĩa với việc người dùng rời đi sớm hơn thì không thể đo bằng retention thuần. Đây là điều tôi chưa từng nghĩ tới trước hôm nay, và nó đổi cách tôi đọc mọi con số của dự án.
 
-**Việc làm tiếp:** hệ thống hiện chưa có event `viewing_completed`, tức là chưa đo được North Star. Sale phải có thao tác đánh dấu buổi xem đã diễn ra. Đây là thứ tôi sẽ đề xuất bổ sung ở sprint sau, trước khi thêm bất kỳ tính năng mới nào.
+**Việc làm tiếp:** hệ thống hiện chưa có event `viewing_closed`, tức là chưa đo được North Star. Sale phải có thao tác đóng lịch hẹn và ghi rõ khách đến, khách không đến, hay khách hủy trước giờ. Đi kèm là trường `cycle_id` để đếm được theo chu kỳ tìm nhà thay vì theo phiên. Hai thứ này tôi sẽ đề xuất bổ sung ở sprint sau, trước khi thêm bất kỳ tính năng mới nào.
