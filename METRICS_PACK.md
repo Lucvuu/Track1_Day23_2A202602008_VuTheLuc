@@ -117,17 +117,23 @@ Ba thành phần đủ. Không dùng doanh thu vì Nera chưa có mô hình thu 
 
 ### Leading indicators
 
-| Chỉ số | Vì sao tin nó dự báo được core action lặp lại |
-|---|---|
-| Tỉ lệ phiên có ít nhất một căn được lưu | Lưu căn là bước ngay trước khi đặt lịch. Phiên không ai lưu gì nghĩa là gợi ý trượt hết, sẽ không có yêu cầu nào phát sinh |
-| Độ đầy hồ sơ nhu cầu sau 5 lượt trao đổi đầu | Hồ sơ càng đủ, truy vấn tìm kiếm càng khớp. Đây là biến đội tác động trực tiếp được bằng cách cải thiện phần hỏi lại |
-| Tỉ lệ khách quay lại phiên sau mà không phải khai lại tiêu chí | Bằng chứng trí nhớ hoạt động. Khách không phải bắt đầu từ đầu thì rào cản quay lại thấp hơn hẳn, và chu kỳ tìm nhà được duy trì |
+| Chỉ số | Tính từ event nào | Vì sao tin nó dự báo được core action lặp lại |
+|---|---|---|
+| Tỉ lệ phiên có ít nhất một căn được lưu | `property_saved` / `search_session_started` | Lưu căn là bước ngay trước khi đặt lịch. Phiên không ai lưu gì nghĩa là gợi ý trượt hết, sẽ không có yêu cầu nào phát sinh |
+| Tỉ lệ phiên đạt đủ tiêu chí trong 5 lượt trao đổi đầu | `criteria_captured` / `search_session_started` | Hồ sơ càng sớm đủ, truy vấn càng khớp. Đây là biến đội tác động trực tiếp được bằng cách cải thiện phần hỏi lại |
+| Tỉ lệ căn bị loại trên tổng số căn hiển thị, theo từng vòng | `property_rejected` / `recommendation_shown` | Nếu vòng lặp ở mục 05 hoạt động, tỉ lệ này phải giảm dần qua các vòng. Đây chính là phép thử cho metric hypothesis |
 
 ### Counter-metrics
 
-**Tỉ lệ yêu cầu đặt lịch bị hủy hoặc khách không đến.** Nếu số yêu cầu tăng mà tỉ lệ này cũng tăng, Nera đang đẩy khách đặt lịch bừa thay vì gợi ý đúng. Sale mất thời gian, sản phẩm mất uy tín.
+**Tỉ lệ lịch đã xác nhận nhưng không diễn ra.**
+Tính bằng số `booking_confirmed` không có `viewing_completed` tương ứng trong vòng 48 giờ sau khung giờ hẹn, chia cho tổng `booking_confirmed`. Không cần event mới, suy ra từ hai event đã có.
 
-**Tỉ lệ phản hồi mang nhãn `fallback`.** Khi nhà cung cấp mô hình lỗi, hệ thống trả lời theo luật cứng. Chỉ số này tăng nghĩa là chất lượng hội thoại đang xuống dù các con số hành vi có thể chưa phản ánh ngay.
+Nếu số yêu cầu đặt lịch tăng mà tỉ lệ này cũng tăng, Nera đang đẩy khách đặt lịch bừa thay vì gợi ý đúng. Sale mất thời gian, sản phẩm mất uy tín.
+
+**Tỉ lệ phản hồi mang nhãn `fallback`.**
+Tính từ thuộc tính `ai_mode` gắn trên mỗi `recommendation_shown`. Hệ thống hiện đã trả về nhãn này trên mọi response nên dữ liệu có sẵn, không cần thêm gì.
+
+Khi nhà cung cấp mô hình lỗi, hệ thống trả lời theo luật cứng. Chỉ số này tăng nghĩa là chất lượng hội thoại đang xuống dù các con số hành vi có thể chưa phản ánh ngay.
 
 ---
 
@@ -140,7 +146,7 @@ Ba thành phần đủ. Không dùng doanh thu vì Nera chưa có mô hình thu 
 | **Return event** | `booking_requested` — core action lặp lại |
 | **Window** | Theo tuần, đo W1 đến W8 kể từ tuần vào cohort |
 | **Threshold** | Ít nhất một lần trong window |
-| **Segment** | Chỉ tính người dùng đã activated, tức đã có ít nhất một `booking_requested` trong 7 ngày đầu |
+| **Segment** | Chỉ tính người dùng đã activated, tức đã có ít nhất một `booking_requested` trong 7 ngày đầu. Tách thêm hai nhánh theo thuộc tính `resumed_from_memory` để so người có được nhắc lại nhu cầu cũ với người không |
 
 **Khớp với cadence ở Phase 2:** Cadence kết luận hành vi theo dự án, chu kỳ 4–10 tuần. Nên đo theo tuần và kéo dài tới W8 để phủ hết một chu kỳ. Đo D1 hoặc D7 sẽ sai vì không ai đặt lịch xem nhà hai ngày liên tiếp.
 
@@ -191,14 +197,26 @@ Khách vẫn chưa có nhà để ở. Đó là lý do quay lại nằm ngoài s
 
 | Tên event | Ý nghĩa | Thời điểm ghi nhận | Metric sử dụng |
 |---|---|---|---|
-| `search_session_started` | Khách bắt đầu một phiên tìm nhà mới | Khi tin nhắn đầu tiên có chứa tiêu chí được xử lý xong và hồ sơ nhu cầu được khởi tạo | Start event của activation; cohort entry của retention |
+| `search_session_started` | Khách bắt đầu một phiên tìm nhà mới | Khi tin nhắn đầu tiên có chứa tiêu chí được xử lý xong và hồ sơ nhu cầu được khởi tạo | Start event của activation; cohort entry của retention; mẫu số của leading 1 và 2 |
 | `criteria_captured` | Hệ thống trích xuất được tối thiểu khu vực và ngân sách | Khi hồ sơ nhu cầu được cập nhật thành công với cả hai trường | Leading indicator 2 |
-| `recommendation_shown` | Danh sách căn gợi ý được hiển thị cho khách | Khi phản hồi chứa ít nhất một thẻ bất động sản render xong trên màn hình | Mẫu số của metric hypothesis ở mục 05 |
+| `recommendation_shown` | Danh sách căn gợi ý được hiển thị cho khách | Khi phản hồi chứa ít nhất một thẻ bất động sản render xong trên màn hình | Mẫu số của leading 3; counter-metric tỉ lệ `fallback` (qua thuộc tính `ai_mode`) |
 | `property_saved` | Khách lưu một căn vào danh sách quan tâm | Khi bản ghi lưu được tạo thành công | Leading indicator 1 |
-| `property_rejected` | Khách đánh dấu một căn không phù hợp | Khi bản ghi loại trừ được tạo thành công | Chất lượng gợi ý; đầu vào cho vòng lặp ở mục 05 |
+| `property_rejected` | Khách đánh dấu một căn không phù hợp | Khi bản ghi loại trừ được tạo thành công | Leading indicator 3; phép thử cho metric hypothesis ở mục 05 |
 | `booking_requested` | **Core action.** Khách gửi yêu cầu đặt lịch xem một căn | Khi bản ghi yêu cầu được tạo với `property_id`, khung giờ, `sale_id`, và hệ thống trả về mã yêu cầu | Activation event; engagement frequency; return event của retention |
-| `booking_confirmed` | Sale xác nhận lịch hẹn | Khi trạng thái yêu cầu chuyển từ chờ duyệt sang đã đặt | Engagement depth; bước trung gian của NSM |
-| `viewing_completed` | **Core value event.** Buổi xem nhà đã diễn ra | Khi sale đánh dấu buổi xem đã hoàn tất | North Star Metric; counter-metric tỉ lệ không đến |
+| `booking_confirmed` | Sale xác nhận lịch hẹn | Khi trạng thái yêu cầu chuyển từ chờ duyệt sang đã đặt | Engagement depth; bước trung gian của NSM; mẫu số của counter-metric 1 |
+| `viewing_completed` | **Core value event.** Buổi xem nhà đã diễn ra | Khi sale đánh dấu buổi xem đã hoàn tất | North Star Metric; tử số của engagement depth và counter-metric 1 |
+
+### Thuộc tính bắt buộc
+
+Ba thuộc tính dưới đây cho phép tính thêm metric mà không phải thêm event, giữ bảng trong giới hạn 8 event.
+
+| Event | Thuộc tính | Dùng để |
+|---|---|---|
+| `search_session_started` | `resumed_from_memory` (true/false) | Tách cohort retention theo việc khách có được nhắc lại nhu cầu cũ hay không |
+| `recommendation_shown` | `ai_mode` (`llm_grounded` / `llm_direct` / `llm_intent` / `fallback`) | Tính counter-metric tỉ lệ `fallback`. Hệ thống hiện đã trả nhãn này trên mọi response |
+| `recommendation_shown` | `round_index` (số vòng gợi ý trong cùng chu kỳ) | Đo tỉ lệ căn bị loại giảm dần qua từng vòng, tức phép thử cho metric hypothesis |
+
+Mọi event đều mang `user_id`, `session_id` và `timestamp` theo múi giờ Asia/Ho_Chi_Minh. Loại trừ tài khoản nội bộ và tài khoản seed demo khỏi mọi phép tính.
 
 ### Tiêu chí nghiệm thu
 
@@ -213,12 +231,54 @@ Với mỗi `request_id`, `booking_requested` và `booking_confirmed` chỉ đư
 
 ### Ghi chú triển khai
 
-Ba event `property_saved`, `property_rejected`, `booking_requested` tương ứng với các nút đã có sẵn trên giao diện hiện tại: *Lưu*, *Không phù hợp*, *Đặt lịch xem*. Event `viewing_completed` **chưa có trong hệ thống**, cần bổ sung thao tác cho sale đánh dấu buổi xem đã diễn ra. Không có event này thì NSM chưa tính được, chỉ đo tới `booking_confirmed`.
+Ba event `property_saved`, `property_rejected`, `booking_requested` tương ứng với các nút đã có sẵn trên giao diện hiện tại: *Lưu*, *Không phù hợp*, *Đặt lịch xem*. Cần kiểm tra lại `property_rejected` hiện có ghi bản ghi vào cơ sở dữ liệu hay chỉ ẩn thẻ trên giao diện.
+
+Event `viewing_completed` **chưa có trong hệ thống**, cần bổ sung thao tác cho sale đánh dấu buổi xem đã diễn ra. Không có event này thì North Star và counter-metric 1 đều chưa tính được, chỉ đo tới `booking_confirmed`. Đây là việc cần làm trước khi thêm bất kỳ tính năng mới nào.
+
+---
+
+## Phase 5 — Tự soi lỗi
+
+| Câu hỏi | Kết quả | Căn cứ |
+|---|:--:|---|
+| Core action không phải thao tác giao diện hay output hệ thống? | Đạt | `booking_requested` là cam kết thời gian thật của khách, không phải nút bấm hay kết quả AI sinh ra |
+| Activation không phải "xem hết hướng dẫn" hay "đăng nhập"? | Đạt | Activation là `booking_requested` lần đầu trong 7 ngày, tức khách đã chạm value |
+| Frequency không cao hơn nhu cầu thật? | Đạt | Cadence kết luận theo dự án, 2–6 lần trong 4–10 tuần. Không dùng DAU |
+| Loop có reason to return ngoài notification? | Đạt | Khách vẫn chưa có nhà để ở. Lý do nằm ngoài sản phẩm, bỏ hết thông báo vòng lặp vẫn chạy |
+| Retention không dùng chung một window cho mọi cadence? | Đạt | Window theo tuần, đo W1–W8, suy ra từ kết luận cadence ở mục 02. Không dùng D1/D7 |
+| Mọi event đều map về một metric? | Đạt | Cả 8 event đều có cột "Metric sử dụng" trỏ về một chỉ số cụ thể ở mục 03 |
+| Metric nào cũng có event để tính nó? | Đạt | Xem bảng đối chiếu dưới |
+
+### Đối chiếu metric với nguồn dữ liệu
+
+| Metric | Tính từ |
+|---|---|
+| Activation rate | `search_session_started` → `booking_requested` trong 7 ngày |
+| Engagement frequency | Đếm `booking_requested` theo chu kỳ |
+| Engagement depth | `viewing_completed` / `booking_requested` |
+| North Star | Đếm `viewing_completed` theo chu kỳ đang hoạt động |
+| Leading 1 | `property_saved` / `search_session_started` |
+| Leading 2 | `criteria_captured` / `search_session_started` |
+| Leading 3 | `property_rejected` / `recommendation_shown`, cắt theo `round_index` |
+| Counter 1 | `booking_confirmed` không có `viewing_completed` trong 48 giờ |
+| Counter 2 | Tỉ lệ `recommendation_shown` có `ai_mode = fallback` |
+| Retention W1–W8 | `search_session_started` (vào cohort) → `booking_requested` (quay lại) |
+
+Không có metric nào thiếu nguồn, không có event nào thừa.
 
 ---
 
 ## 07 — Revision
 
-Không có thay đổi lớn. Core action giữ nguyên từ đầu, cadence và các metric phía sau đều suy ra từ nó.
+Core action và cadence giữ nguyên từ đầu. Hai thay đổi ở tầng metric và tracking, đều phát sinh khi chạy Phase 5.
 
-Một điểm từng cân nhắc rồi loại: chọn `property_saved` làm core action vì tần suất cao hơn. Loại vì lưu căn không tốn gì của khách nên là tín hiệu yếu, và có thể tăng chỉ vì khách phân vân chứ không phải vì gợi ý tốt. `booking_requested` bắt khách trả giá bằng thời gian thật, nên gần core value hơn.
+**Thay đổi 1 — bỏ leading indicator không tính được.**
+Bản đầu đặt leading indicator là "tỉ lệ khách quay lại mà không phải khai lại tiêu chí". Ý đúng nhưng không có event nào ghi lại việc đó, vi phạm quy tắc mọi metric phải có event để tính. Thay bằng "tỉ lệ căn bị loại trên tổng số căn hiển thị theo từng vòng", tính từ `property_rejected` và `recommendation_shown`. Chỉ số mới còn tốt hơn ở chỗ nó chính là phép thử trực tiếp cho metric hypothesis ở mục 05. Phần trí nhớ được giữ lại dưới dạng thuộc tính `resumed_from_memory` để tách cohort retention.
+
+**Thay đổi 2 — bỏ event `property_rejected` khỏi diện "không map metric".**
+Bản đầu ghi công dụng của event này là "chất lượng gợi ý", nghe hợp lý nhưng không trỏ về chỉ số cụ thể nào. Sau khi đổi leading indicator 3, event này có metric rõ ràng.
+
+**Cách xử lý giới hạn 8 event.**
+Ba metric còn thiếu nguồn ban đầu là tỉ lệ nhắc lại nhu cầu, tỉ lệ hủy lịch và tỉ lệ `fallback`. Nếu thêm ba event mới thì bảng lên 11, vượt giới hạn. Cách xử lý: hai trong ba dùng thuộc tính gắn trên event đã có (`resumed_from_memory`, `ai_mode`), cái còn lại suy ra từ việc `booking_confirmed` không có `viewing_completed` tương ứng. Bảng giữ đúng 8 event.
+
+**Một điểm từng cân nhắc rồi loại:** chọn `property_saved` làm core action vì tần suất cao hơn. Loại vì lưu căn không tốn gì của khách nên là tín hiệu yếu, và có thể tăng chỉ vì khách phân vân chứ không phải vì gợi ý tốt. `booking_requested` bắt khách trả giá bằng thời gian thật, nên gần core value hơn.
