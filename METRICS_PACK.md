@@ -220,7 +220,7 @@ Khách vẫn chưa có nhà để ở. Đó là lý do quay lại nằm ngoài s
 
 ---
 
-## 06 — Tracking
+## 06 — Tracking nhanh
 
 ### Bảng event
 

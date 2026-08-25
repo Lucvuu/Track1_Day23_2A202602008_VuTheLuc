@@ -9,6 +9,8 @@
 
 **Link tệp Metrics Pack:** https://drive.google.com/file/d/1gU0MnkFbTRdp6yvjzYBgpU90UPJrjWFl/view?usp=sharing
 
+Bản markdown gốc của tệp này cũng nằm ngay trong repo tại `METRICS_PACK.md`, phòng khi link Drive mở không được.
+
 ---
 
 ## Điều tôi mang về áp dụng cho dự án thật
