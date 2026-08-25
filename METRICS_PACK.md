@@ -181,7 +181,9 @@ Repeat value      Danh sách lần này sát hơn lần trước vì hệ thốn
 
 ### Metric hypothesis
 
-> Nếu loop này hoạt động, metric **số lượt xem gợi ý cần thiết để dẫn tới một yêu cầu đặt lịch** sẽ **giảm dần qua từng chu kỳ quay lại** trong **khoảng 3–6 tuần**, vì **hệ thống loại dần các căn khách đã từ chối và hồ sơ nhu cầu đầy dần lên sau mỗi vòng**.
+> Nếu loop này hoạt động, metric **leading indicator 3 — tỉ lệ căn bị loại trên tổng số căn hiển thị** (mục 03) sẽ **giảm dần theo `round_index`, tức vòng gợi ý sau thấp hơn vòng trước** trong **khoảng 3–6 tuần của một chu kỳ tìm nhà**, vì **hệ thống loại dần các căn khách đã từ chối và hồ sơ nhu cầu đầy dần lên sau mỗi vòng**.
+
+Chỉ số này trỏ thẳng về một metric đã định nghĩa ở Phase 3, tính từ `property_rejected` chia cho `recommendation_shown`, cắt theo thuộc tính `round_index`.
 
 ### Reason to return nếu bỏ hết notification
 
